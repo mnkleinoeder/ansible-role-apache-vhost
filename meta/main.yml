@@ -23,6 +23,5 @@ galaxy_info:
   #
   categories:
   - web
-dependencies:
-  - role: git+https://github.com/mnkleinoeder/ansible-role-apache.git,master,github.apache
+dependencies: []
 
