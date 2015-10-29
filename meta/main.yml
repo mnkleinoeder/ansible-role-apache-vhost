@@ -1,0 +1,29 @@
+---
+galaxy_info:
+  author: Thomas Kleinöder
+  description:
+  company: Molecular Networks GmbH
+  license: GPLv2
+  min_ansible_version: 1.8
+  platforms:
+  - name: EL
+    versions:
+    - 6
+  - name: Ubuntu
+    versions:
+    - trusty
+  #- name: Debian
+  #  versions:
+  #  - all
+  #  - etch
+  #  - jessie
+  #  - lenny
+  #  - squeeze
+  #  - wheezy
+  #
+  categories:
+  - web
+dependencies:
+  - name: github.apache
+    src: git+https://github.com/mnkleinoeder/ansible-role-apache.git
+

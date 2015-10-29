@@ -1,0 +1,14 @@
+# {{ansible_managed}}
+
+{% if VHOST_GLOBAL_REDIRECTS | default('') %}
+RewriteEngine On
+
+{% for item in VHOST_GLOBAL_REDIRECTS %}
+
+{% for source in item.sources %}
+RewriteRule ^{{source}}$  {{item.target}} [R=301,L]
+{% endfor %}
+
+{% endfor %}
+
+{% endif %}

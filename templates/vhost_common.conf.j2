@@ -1,0 +1,55 @@
+# {{ansible_managed}}
+
+{% if VHOST_HTTP_TO_HTTPS | bool %}
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^.*{{VHOST_SERVER_NAME|replace('.','\.')}} [NC]
+RewriteCond %{HTTPS} !on
+RewriteRule ^(.*) https://{{VHOST_SERVER_NAME}}$1  [R=301,L]
+{% endif %}
+
+{% for dir, item in [ ('Directory',  '/'), ('Directory', VHOST_DOC_ROOT), ('Directory', VHOST_DOC_ROOT+'/static') ] %}
+
+<{{dir}} {{item}}>
+
+{% if VHOST_FULL_PROTECTED | bool %}
+	AuthType Basic
+	AuthName "{{VHOST_AuthName}}"
+	{% if VHOST_USE_LDAP | bool %}
+    	AuthLDAPURL {{VHOST_AuthLDAPURL}}
+    	AuthLDAPGroupAttribute {{VHOST_AuthLDAPGroupAttribute}}
+    	AuthLDAPGroupAttributeIsDN on
+    	AuthBasicProvider ldap
+    	{% for group in VHOST_LDAP_GROUPS %}
+    	   Require ldap-group {{group}}
+    	{% endfor %}
+      {% for user in VHOST_LDAP_USERS %}
+         Require ldap-user {{user}}
+      {% endfor %}
+	{% else %}
+      AuthBasicProvider file
+    	AuthUserFile {{VHOST_AuthUserFile}}
+		{% for user in VHOST_HTTPASSWD_USERS|default([]) %}
+        	Require user {{user}}
+		{% endfor %}
+	{% endif %}
+
+    {% if dir == 'Directory' and SYS_APACHE_VERSION != '2.4' %}
+    	Satisfy Any
+    {% endif %}
+
+{% else %}
+
+    {% if SYS_APACHE_VERSION == "2.4"  %}
+# overwrite of access rules in apache 2.4 is not clear to me
+# if this rule is set for the root no access rules are applied anymore.
+      Require all granted
+    {% else %}
+      Order allow,deny
+      Allow from all
+    {% endif %}
+
+{% endif %}
+
+</{{dir}}>
+
+{% endfor %}
