@@ -14,22 +14,29 @@
 # - mod_security? (http://snippets.aktagon.com/snippets/563-brute-force-authentication-protection-with-modsecurity)
 # - mod_evasive? (http://wiki.ubuntuusers.de/Apache/mod_evasive)
 #
+
+# BEGIN certificate handling
 - file: path="{{VHOST_SSL_DIR}}" state=directory
 
-- fail: "msg=VHOST_SSL_CACERTFILE must not be given for self-signed certs"
-  when: VHOST_USE_SELFSIGNED_CERT|bool and VHOST_SSL_CACERTFILE
+- fail: msg="VHOST_SSL_CACERTFILE must not be given for self-signed certs"
+  when: VHOST_CERT_HANDLER == 'selfsigned' and VHOST_SSL_CACERTFILE
 
-- debug: "msg=VHOST_USE_SELFSIGNED_CERT: {{VHOST_USE_SELFSIGNED_CERT}}"
-- debug: "msg=VHOST_USE_LDAP: {{VHOST_USE_LDAP}}"
+- debug: var=VHOST_CERT_HANDLER
+- debug: var=VHOST_USE_LDAP
 
 - include: inc_selfsigned_cert.yml
-  when: VHOST_USE_SELFSIGNED_CERT|bool
+  when: VHOST_CERT_HANDLER == 'selfsigned'
 
 - include: inc_copy_ssl_files.yml
-  when: not VHOST_USE_SELFSIGNED_CERT|bool
+  when: VHOST_CERT_HANDLER == 'purchased'
+
+- include: inc_letsencrypt.yml
+  when: VHOST_CERT_HANDLER == 'letsencrypt'
 
 - name: restricting file permissions of SSL key file
   file: path={{VHOST_SSL_DIR}}/{{VHOST_SSL_KEYFILE}} mode=0400 owner=root group=root
+  when: VHOST_CERT_HANDLER != 'letsencrypt'
+# END certificate handling
 
 - name: apache docroot
   file: path={{VHOST_DOC_ROOT}} state=directory owner=root group=root

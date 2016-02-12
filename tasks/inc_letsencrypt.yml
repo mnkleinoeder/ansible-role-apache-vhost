@@ -1,0 +1,4 @@
+---
+# do nothing yet as letsencrypt has only be used manually on a view vhosts yet.
+
+# TODO: include the full letsencrypt workflow here in order to initiate and renew certs

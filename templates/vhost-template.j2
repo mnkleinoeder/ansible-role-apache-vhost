@@ -45,11 +45,20 @@
 
 	SSLEngine on
 	SSLProtocol All -SSLv2 -SSLv3
-	SSLCertificateFile    {{VHOST_SSL_DIR}}/{{VHOST_SSL_CERTFILE}}
-	SSLCertificateKeyFile {{VHOST_SSL_DIR}}/{{VHOST_SSL_KEYFILE}}
-	{% if VHOST_SSL_CACERTFILE %}
-	SSLCACertificateFile  {{VHOST_SSL_DIR}}/{{VHOST_SSL_CACERTFILE}}
+	{% if VHOST_CERT_HANDLER == 'letsencrypt' %}
+		SSLCertificateFile    /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/cert.pem
+	  SSLCertificateKeyFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/privkey.pem
+	  SSLCertificateChainFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/chain.pem
+	{% elif VHOST_CERT_HANDLER == 'selfsigned' or VHOST_CERT_HANDLER == 'purchased'%}
+		SSLCertificateFile    {{VHOST_SSL_DIR}}/{{VHOST_SSL_CERTFILE}}
+		SSLCertificateKeyFile {{VHOST_SSL_DIR}}/{{VHOST_SSL_KEYFILE}}
+		{% if VHOST_SSL_CACERTFILE %}
+			SSLCACertificateFile  {{VHOST_SSL_DIR}}/{{VHOST_SSL_CACERTFILE}}
+		{% endif %}
+	{% else %}
+		MISSING SSL FILES DUE TO MISSING JINJA VAR
 	{% endif %}
+	
 	<FilesMatch "\.(cgi|shtml|phtml|php)$">
 		SSLOptions +StdEnvVars
 	</FilesMatch>

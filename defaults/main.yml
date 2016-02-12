@@ -28,13 +28,17 @@ VHOST_LDAP_GROUPS: []
 VHOST_LDAP_USERS: []
 VHOST_HTTPASSWD_USERS: []
 
-VHOST_USE_SELFSIGNED_CERT: True
+# one of selfsigned, purchased, letsencrypt
+VHOST_CERT_HANDLER: selfsigned
+
+#VHOST_USE_SELFSIGNED_CERT: True
+# default for selfsigned
 VHOST_CERT_DN: "/CN={{VHOST_SERVER_NAME}}"
 
 # if VHOST_USE_SELFSIGNED_CERT is false these files should be defined
 VHOST_SSL_KEYFILE: "{{VHOST_SERVER_NAME}}.key"
 VHOST_SSL_CERTFILE: "{{VHOST_SERVER_NAME}}.crt"
 
-# if chaining is used by the intermediate CA file should be given here
+# if chaining is used the intermediate CA file should be given here
 VHOST_SSL_CACERTFILE: ""
 
