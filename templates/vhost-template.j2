@@ -44,7 +44,8 @@
 {% endif %}
 
 	SSLEngine on
-	SSLProtocol All -SSLv2 -SSLv3
+	# ssl config settings have been set globally in the conf dir
+
 	{% if VHOST_CERT_HANDLER == 'letsencrypt' %}
 		SSLCertificateFile    /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/cert.pem
 	  SSLCertificateKeyFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/privkey.pem

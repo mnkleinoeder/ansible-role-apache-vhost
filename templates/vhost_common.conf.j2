@@ -1,13 +1,29 @@
 # {{ansible_managed}}
 
-{% if VHOST_HTTP_TO_HTTPS | bool %}
+# - let's encrypt handles the http->https redirect as follows:
+#RewriteEngine on
+#RewriteCond %{SERVER_NAME} =www.mn-am.com [OR]
+#RewriteCond %{SERVER_NAME} =mn-am.com
+#RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,QSA,R=permanent]
+
 RewriteEngine On
-RewriteCond %{HTTP_HOST} ^.*{{VHOST_SERVER_NAME|replace('.','\.')}} [NC]
+RewriteCond %{SERVER_PORT}s ^(443(s)|[0-9]+s)$
+RewriteRule ^(.*)$ - [env=ps:%2]
+
+{% if VHOST_SERVER_CATCHALL_DOMAIN != "" and VHOST_SERVER_NAME != VHOST_SERVER_CATCHALL_DOMAIN %}
+RewriteCond %{HTTP_HOST} ^.*{{VHOST_SERVER_CATCHALL_DOMAIN|replace('.','\.')}} [NC]
+RewriteCond %{HTTP_HOST} !^{{VHOST_SERVER_NAME|replace('.','\.')}} [NC]
+RewriteRule ^(.*) http%{ps}://{{VHOST_SERVER_NAME}}$1  [R=301,L]
+{% endif %}
+
+{% if VHOST_HTTP_TO_HTTPS | bool %}
+RewriteCond %{HTTP_HOST} ^{{VHOST_SERVER_NAME|replace('.','\.')}} [NC]
 RewriteCond %{HTTPS} !on
 RewriteRule ^(.*) https://{{VHOST_SERVER_NAME}}$1  [R=301,L]
 {% endif %}
 
-{% for dir, item in [ ('Directory',  '/'), ('Directory', VHOST_DOC_ROOT), ('Directory', VHOST_DOC_ROOT+'/static') ] %}
+
+{% for dir, item in [ ('Directory', VHOST_DOC_ROOT), ('Directory', VHOST_DOC_ROOT+'/static') ] %}
 
 <{{dir}} {{item}}>
 
