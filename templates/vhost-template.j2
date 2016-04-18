@@ -12,8 +12,8 @@
 	DocumentRoot {{VHOST_DOC_ROOT}}
 
 	LogLevel {{VHOST_LOG_LEVEL}}
-	CustomLog {{SYS_APACHE_LOG_DIR}}/{{VHOST_SERVER_NAME}}.com_access.log combined
-	ErrorLog  {{SYS_APACHE_LOG_DIR}}/{{VHOST_SERVER_NAME}}.com_error.log
+	CustomLog {{SYS_APACHE_LOG_DIR}}/{{VHOST_SERVER_NAME}}_access.log combined
+	ErrorLog  {{SYS_APACHE_LOG_DIR}}/{{VHOST_SERVER_NAME}}_error.log
   {{SYS_APACHE_INCLUDE_CONF}} {{VHOST_CONF_DIR}}/*.conf-nossl
   {{SYS_APACHE_INCLUDE_CONF}} {{VHOST_CONF_DIR}}/*.conf
 
