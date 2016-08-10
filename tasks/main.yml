@@ -18,8 +18,8 @@
 # BEGIN certificate handling
 - file: path="{{VHOST_SSL_DIR}}" state=directory
 
-- fail: msg="VHOST_SSL_CACERTFILE must not be given for self-signed certs"
-  when: VHOST_CERT_HANDLER == 'selfsigned' and VHOST_SSL_CACERTFILE
+#- fail: msg="VHOST_SSL_CACERTFILE must not be given for self-signed certs"
+#  when: VHOST_CERT_HANDLER == 'selfsigned' and VHOST_SSL_CACERTFILE
 
 - debug: var=VHOST_CERT_HANDLER
 - debug: var=VHOST_USE_LDAP

@@ -50,14 +50,12 @@
 		SSLCertificateFile    /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/cert.pem
 	  SSLCertificateKeyFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/privkey.pem
 	  SSLCertificateChainFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/chain.pem
-	{% elif VHOST_CERT_HANDLER == 'selfsigned' or VHOST_CERT_HANDLER == 'purchased'%}
+	{% else %}
 		SSLCertificateFile    {{VHOST_SSL_DIR}}/{{VHOST_SSL_CERTFILE}}
 		SSLCertificateKeyFile {{VHOST_SSL_DIR}}/{{VHOST_SSL_KEYFILE}}
-		{% if VHOST_SSL_CACERTFILE %}
+		{% if VHOST_CERT_HANDLER == 'purchased' and VHOST_SSL_CACERTFILE %}
 			SSLCACertificateFile  {{VHOST_SSL_DIR}}/{{VHOST_SSL_CACERTFILE}}
 		{% endif %}
-	{% else %}
-		MISSING SSL FILES DUE TO MISSING JINJA VAR
 	{% endif %}
 	
 	<FilesMatch "\.(cgi|shtml|phtml|php)$">
