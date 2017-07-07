@@ -6,9 +6,25 @@ RewriteEngine On
 {% for item in VHOST_GLOBAL_REDIRECTS %}
 
 {% for source in item.sources %}
-RewriteRule ^{{source}}$  {{item.target}} [R=301,L]
+RewriteRule ^{{source}}$  {{item.target}} [R=301,L,E=nocache:1]
 {% endfor %}
 
 {% endfor %}
+
+Header always set Cache-Control "no-store, no-cache, must-revalidate" env=nocache
+Header always set Expires "Thu, 01 Jan 1970 00:00:00 GMT" env=nocache
 
 {% endif %}
+
+#TODO: rewrite cache control
+#see http://mark.koli.ch/set-cache-control-and-expires-headers-on-a-redirect-with-mod-rewrite
+
+#RewriteCond %{HTTP_HOST} !^mark\.koli\.ch [NC]
+#RewriteRule ^/(.*)$ http://mark.koli.ch/$1 [R=301,L,E=nocache:1]
+
+## Set the response header if the "nocache" environment variable is set
+## in the RewriteRule above.
+#Header always set Cache-Control "no-store, no-cache, must-revalidate" env=nocache
+
+## Set Expires too ...
+#Header always set Expires "Thu, 01 Jan 1970 00:00:00 GMT" env=nocache
