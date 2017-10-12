@@ -2,3 +2,28 @@
 # do nothing yet as letsencrypt has only be used manually on a view vhosts yet.
 
 # TODO: include the full letsencrypt workflow here in order to initiate and renew certs
+
+#- --staging
+
+# --non-interactive --email EMAIL --domain DOMAIN --rsa-key-size 4096
+#/opt/letsencrypt # ./letsencrypt-auto --apache -d macollab.com
+
+#/opt/letsencrypt/letsencrypt-auto --apache -d webapps.molecular-networks.com --email nic@molecular-networks.com --agree-tos certonly --keep-until-expiring -n
+
+- set_fact:
+    _le_staging: "--staging"
+  when: VHOST_LETSENCRYPT_STAGING
+
+- set_fact:
+    _le_aliases: "-d {{ VHOST_SERVER_ALIASES|join(' -d ') }}"
+  when:  VHOST_SERVER_ALIASES
+
+- set_fact:
+- name: run the letsencrypt bot
+  shell: >
+    echo
+    {{ LETSENCRYPT_CERT_BOT }} --apache --email {{ LETSENCRYPT_ADMIN_EMAIL }}
+    {{ _le_staging | default('') }}
+    -d {{ VHOST_SERVER_NAME }}
+    {{ _le_aliases | default('') }}
+    --rsa-key-size 4096 --agree-tos certonly --keep-until-expiring -n

@@ -23,5 +23,8 @@ galaxy_info:
   #
   categories:
   - web
-dependencies: []
+dependencies:
+  - apache-base
+  - role: letsencrypt
+    when: 'VHOST_CERT_HANDLER == "letsencrypt"'
 

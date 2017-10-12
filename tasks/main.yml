@@ -2,11 +2,83 @@
 #- name: include vars
 #  include_vars: "{{ansible_distribution}}.yml"
 
-- include: Ubuntu.yml
-  when: ansible_distribution == "Ubuntu"
+- name: executing OS specific stuff
+  include_tasks:  "{{ ansible_distribution }}.yml"
 
-- include: CentOS.yml
-  when: ansible_distribution == "CentOS"
+# BEGIN certificate handling
+- name: create vhost directory for SSL files 
+  file:
+    path: "{{ VHOST_SSL_DIR }}"
+    state: directory
+
+#- fail: msg="VHOST_SSL_CACERTFILE must not be given for self-signed certs"
+#  when: VHOST_CERT_HANDLER == 'selfsigned' and VHOST_SSL_CACERTFILE
+
+- debug: var=VHOST_CERT_HANDLER
+- debug: var=VHOST_USE_LDAP
+
+- include_tasks: inc_selfsigned_cert.yml
+  when: VHOST_CERT_HANDLER == 'selfsigned'
+
+- include_tasks: inc_copy_ssl_files.yml
+  when: VHOST_CERT_HANDLER == 'purchased'
+
+- include_tasks: inc_letsencrypt.yml
+  when: VHOST_CERT_HANDLER == 'letsencrypt'
+
+- name: restricting file permissions of SSL key file
+  file:
+    path: "{{ VHOST_SSL_DIR }}/{{ VHOST_SSL_KEYFILE }}"
+    mode: 0400
+    owner: root
+    group: root
+  when: VHOST_CERT_HANDLER != 'letsencrypt'
+# END certificate handling
+
+- name: vhost specific dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+  with_items:
+  - "{{ VHOST_DOC_ROOT }}"
+  - "{{ VHOST_CONF_DIR }}"
+  
+- name: copy basic config file
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0444
+  with_items:
+  - { src: "vhost_common.conf.j2",            dest: "{{ VHOST_CONF_DIR }}/00-common.conf" }
+  - { src: "global_redirects.apache.conf.j2", dest: "{{ VHOST_CONF_DIR }}/01-redirect.conf" }
+  - { src: "vhost-template.j2",               dest: "{{ VHOST_CONF_FILE }}" }
+  notify: restart apache
+
+- name: create file to check vhost via browser
+  copy:
+    content: "This is {{ VHOST_SERVER_NAME }} ({{ ansible_all_ipv4_addresses | join('/') }})"
+    dest: "{{ VHOST_DOC_ROOT }}/trace"
+
+- fail:
+    msg: "VHOST_SERVER_ALIAS has been removed. Set VHOST_SERVER_ALIASES instead."
+  when: VHOST_SERVER_ALIAS is defined
+
+
+- name: Enable vhosts-conf
+  file:
+    src: "/etc/apache2/sites-available/{{ VHOST_SERVER_NAME }}.conf"
+    dest: "/etc/apache2/sites-enabled/{{ VHOST_SERVER_NAME }}.conf"
+    state: link
+  when: ansible_distribution == "Ubuntu"
+  notify: restart apache
+
+- name: ensure that we did not mess up apache config
+  command: apache2ctl -t
+  changed_when: false
 
 #
 # TODO: brute-force attack protection
@@ -15,59 +87,3 @@
 # - mod_evasive? (http://wiki.ubuntuusers.de/Apache/mod_evasive)
 #
 
-# BEGIN certificate handling
-- file: path="{{VHOST_SSL_DIR}}" state=directory
-
-#- fail: msg="VHOST_SSL_CACERTFILE must not be given for self-signed certs"
-#  when: VHOST_CERT_HANDLER == 'selfsigned' and VHOST_SSL_CACERTFILE
-
-- debug: var=VHOST_CERT_HANDLER
-- debug: var=VHOST_USE_LDAP
-
-- include: inc_selfsigned_cert.yml
-  when: VHOST_CERT_HANDLER == 'selfsigned'
-
-- include: inc_copy_ssl_files.yml
-  when: VHOST_CERT_HANDLER == 'purchased'
-
-- include: inc_letsencrypt.yml
-  when: VHOST_CERT_HANDLER == 'letsencrypt'
-
-- name: restricting file permissions of SSL key file
-  file: path={{VHOST_SSL_DIR}}/{{VHOST_SSL_KEYFILE}} mode=0400 owner=root group=root
-  when: VHOST_CERT_HANDLER != 'letsencrypt'
-# END certificate handling
-
-- name: apache docroot
-  file: path={{VHOST_DOC_ROOT}} state=directory owner=root group=root
-
-- name: create conf location
-  file: path={{item}} state=directory owner=root group=root
-  with_items:
-  - "{{VHOST_CONF_DIR}}"
-
-- name: copy basic config file
-  template: src=vhost_common.conf.j2 dest={{VHOST_CONF_DIR}}/00-common.conf
-  notify: restart apache
-
-- name: create global redirect for this vhost
-  template: src=global_redirects.apache.conf.j2 dest={{VHOST_CONF_DIR}}/01-redirect.conf owner=root group=root mode=0444
-  notify: restart apache
-
-- name: create vhost-conf
-  template: src=vhost-template.j2 dest={{VHOST_CONF_FILE}} owner=root group=root mode=0444
-  notify: restart apache
-
-- name: Enable vhosts-conf
-  file: >
-    src="/etc/apache2/sites-available/{{VHOST_SERVER_NAME}}.conf"
-    dest="/etc/apache2/sites-enabled/{{VHOST_SERVER_NAME}}.conf"
-    state=link
-  when: ansible_distribution == "Ubuntu"
-  notify: restart apache
-
-- name: create file to check vhost via browser
-  copy: content="This is {{VHOST_SERVER_NAME}} ({{ansible_all_ipv4_addresses | join('/') }})"
-    dest="{{VHOST_DOC_ROOT}}/trace"
-#- name: ensure that we did not mess up apache config
-#  command: apache2ctl -t

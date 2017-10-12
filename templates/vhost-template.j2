@@ -27,8 +27,8 @@
 	ServerAdmin {{VHOST_SERVER_ADMIN}}
 	ServerName  {{VHOST_SERVER_NAME}}
 
-  {% if VHOST_SERVER_ALIAS | default('') %}
-    ServerAlias {{ VHOST_SERVER_ALIAS }}
+  {% if VHOST_SERVER_ALIASES %}
+    ServerAlias {{ VHOST_SERVER_ALIASES | join(" ") }}
   {% endif %}
 
 	DocumentRoot {{VHOST_DOC_ROOT}}
@@ -47,9 +47,7 @@
 	# ssl config settings have been set globally in the conf dir
 
 	{% if VHOST_CERT_HANDLER == 'letsencrypt' %}
-		SSLCertificateFile    /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/cert.pem
-	  SSLCertificateKeyFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/privkey.pem
-	  SSLCertificateChainFile /etc/letsencrypt/live/{{VHOST_SERVER_NAME}}/chain.pem
+	# will be managed by letsencrypt
 	{% else %}
 		SSLCertificateFile    {{VHOST_SSL_DIR}}/{{VHOST_SSL_CERTFILE}}
 		SSLCertificateKeyFile {{VHOST_SSL_DIR}}/{{VHOST_SSL_KEYFILE}}
