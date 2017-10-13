@@ -1,4 +1,6 @@
 ---
+# defaults vars for apache-vhost
+
 # or rather: VHOST_SERVER_NAME: "{{ansible_fqdn}}" ?
 VHOST_SERVER_NAME: "{{ansible_nodename}}"
 VHOST_SERVER_ALIASES: []
