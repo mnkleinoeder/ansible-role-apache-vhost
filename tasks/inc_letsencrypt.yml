@@ -21,7 +21,6 @@
 - set_fact:
 - name: run the letsencrypt bot
   shell: >
-    echo
     {{ LETSENCRYPT_CERT_BOT }} --apache --email {{ LETSENCRYPT_ADMIN_EMAIL }}
     {{ _le_staging | default('') }}
     -d {{ VHOST_SERVER_NAME }}
