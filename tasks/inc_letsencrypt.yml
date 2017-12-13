@@ -26,3 +26,6 @@
     -d {{ VHOST_SERVER_NAME }}
     {{ _le_aliases | default('') }}
     --rsa-key-size 4096 --agree-tos certonly --keep-until-expiring -n
+  register: _r
+  changed_when: |
+    not "no action taken" in _r.stdout 
